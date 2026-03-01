@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin — AQUANET Survey Responses</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root { --deep:#030d1a; --ocean:#05244a; --teal:#0e7c8a; --aqua:#00c9d4; --foam:#a8f0f4; --light:#e8f7f8; }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background:var(--deep); color:var(--light); font-family:'DM Sans',sans-serif; min-height:100vh; padding:40px 20px; }
+
+        header { max-width:1200px; margin:0 auto 32px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; }
+        h1 { font-family:'Playfair Display',serif; font-size:1.8rem; background:linear-gradient(135deg,#f5fdfe,var(--aqua)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+        .stats { display:flex; gap:12px; flex-wrap:wrap; }
+        .stat-badge { background:rgba(0,201,212,0.1); border:1px solid rgba(0,201,212,0.25); border-radius:10px; padding:8px 18px; font-size:0.85rem; }
+        .stat-badge strong { color:var(--aqua); font-size:1.1rem; }
+
+        .actions { max-width:1200px; margin:0 auto 20px; display:flex; gap:12px; flex-wrap:wrap; }
+        .btn { display:inline-flex; align-items:center; gap:8px; padding:10px 22px; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:0.875rem; cursor:pointer; text-decoration:none; border:none; transition:all 0.2s; }
+        .btn-primary { background:linear-gradient(135deg,var(--teal),var(--aqua)); color:var(--deep); font-weight:700; }
+        .btn-primary:hover { transform:translateY(-1px); box-shadow:0 4px 16px rgba(0,201,212,0.3); }
+        .btn-ghost { background:rgba(0,201,212,0.08); border:1px solid rgba(0,201,212,0.2); color:var(--aqua); }
+        .btn-ghost:hover { background:rgba(0,201,212,0.15); }
+
+        .table-wrap { max-width:1200px; margin:0 auto; overflow-x:auto; }
+        table { width:100%; border-collapse:collapse; font-size:0.8rem; }
+        thead tr { background:rgba(0,201,212,0.08); }
+        th { padding:11px 13px; text-align:left; color:var(--aqua); font-weight:500; letter-spacing:0.3px; white-space:nowrap; border-bottom:1px solid rgba(0,201,212,0.15); font-size:0.75rem; text-transform:uppercase; }
+        td { padding:10px 13px; border-bottom:1px solid rgba(0,201,212,0.06); color:rgba(232,247,248,0.8); vertical-align:top; }
+        tr:hover td { background:rgba(0,201,212,0.04); }
+        .empty { text-align:center; padding:60px; color:rgba(168,240,244,0.4); font-size:1rem; }
+        .tag { display:inline-block; background:rgba(0,201,212,0.1); border:1px solid rgba(0,201,212,0.2); border-radius:4px; padding:2px 7px; font-size:0.7rem; color:var(--aqua); margin:2px; white-space:nowrap; }
+        .cell-long { max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; cursor:help; }
+        .rating { display:inline-block; background:rgba(0,201,212,0.15); border-radius:50%; width:24px; height:24px; line-height:24px; text-align:center; color:var(--aqua); font-weight:700; font-size:0.8rem; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>AQUANET Survey Admin</h1>
+    <div class="stats">
+        <div class="stat-badge">Total Responses: <strong>{{ count }}</strong></div>
+    </div>
+</header>
+
+<div class="actions">
+    <a href="/admin/export" class="btn btn-primary">⬇ Export CSV</a>
+    <a href="/" class="btn btn-ghost">← View Survey</a>
+</div>
+
+<div class="table-wrap">
+    {% if rows %}
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Date</th>
+                <th>Name</th>
+                <th>Age</th>
+                <th>Role</th>
+                <th>Specialization</th>
+                <th>Experience</th>
+                <th>Region</th>
+                <th>Challenges</th>
+                <th>Data Difficulty</th>
+                <th>Datasets Scattered</th>
+                <th>Tools Used</th>
+                <th>Platform Satisfaction</th>
+                <th>Missing Feature</th>
+                <th>Historical Data</th>
+                <th>Map Viz Importance</th>
+                <th>Fisheries Integration</th>
+                <th>Species Data Freq.</th>
+                <th>Aware of Platform</th>
+                <th>Platform Meets Needs</th>
+                <th>AQUANET Usefulness</th>
+                <th>Valuable Features</th>
+                <th>Reduce Search Time</th>
+                <th>Genomics Helpfulness</th>
+                <th>Collab Importance</th>
+                <th>Join Community</th>
+                <th>Share Findings</th>
+                <th>Upload Datasets</th>
+                <th>Data Concerns</th>
+                <th>DOI Importance</th>
+                <th>Citizen Science</th>
+                <th>Conservation Impact</th>
+                <th>Likely to Use</th>
+                <th>Recommend</th>
+                <th>Unique Feature</th>
+                <th>Improvements</th>
+                <th>Comments</th>
+                <th>Future Testing</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+            <tr>
+                <td>{{ row['id'] }}</td>
+                <td style="white-space:nowrap">{{ row['submitted_at'][:16] }}</td>
+                <td>{{ row['name'] or '—' }}</td>
+                <td>{{ row['age'] or '—' }}</td>
+                <td>{{ row['role'] or '—' }}</td>
+                <td>{{ row['specialization'] or '—' }}</td>
+                <td>{{ row['experience'] or '—' }}</td>
+                <td>{{ row['region'] or '—' }}</td>
+                <td>
+                    {% if row['challenges'] %}
+                        {% for t in row['challenges'].split(', ') %}<span class="tag">{{ t }}</span>{% endfor %}
+                    {% else %}—{% endif %}
+                </td>
+                <td>{% if row['data_difficulty'] %}<span class="rating">{{ row['data_difficulty'] }}</span>{% else %}—{% endif %}</td>
+                <td>{{ row['datasets_scattered'] or '—' }}</td>
+                <td>
+                    {% if row['tools_used'] %}
+                        {% for t in row['tools_used'].split(', ') %}<span class="tag">{{ t }}</span>{% endfor %}
+                    {% else %}—{% endif %}
+                </td>
+                <td>{% if row['platform_satisfaction'] %}<span class="rating">{{ row['platform_satisfaction'] }}</span>{% else %}—{% endif %}</td>
+                <td class="cell-long" title="{{ row['missing_feature'] }}">{{ row['missing_feature'] or '—' }}</td>
+                <td>{{ row['historical_data_access'] or '—' }}</td>
+                <td>{% if row['map_viz_importance'] %}<span class="rating">{{ row['map_viz_importance'] }}</span>{% else %}—{% endif %}</td>
+                <td>{{ row['fisheries_integration'] or '—' }}</td>
+                <td>{{ row['species_data_frequency'] or '—' }}</td>
+                <td>{{ row['aware_integrated_platform'] or '—' }}</td>
+                <td>{{ row['platform_meets_needs'] or '—' }}</td>
+                <td>{% if row['aquanet_usefulness'] %}<span class="rating">{{ row['aquanet_usefulness'] }}</span>{% else %}—{% endif %}</td>
+                <td>
+                    {% if row['valuable_features'] %}
+                        {% for t in row['valuable_features'].split(', ') %}<span class="tag">{{ t }}</span>{% endfor %}
+                    {% else %}—{% endif %}
+                </td>
+                <td>{{ row['reduce_search_time'] or '—' }}</td>
+                <td>{% if row['genomics_helpfulness'] %}<span class="rating">{{ row['genomics_helpfulness'] }}</span>{% else %}—{% endif %}</td>
+                <td>{% if row['collab_importance'] %}<span class="rating">{{ row['collab_importance'] }}</span>{% else %}—{% endif %}</td>
+                <td>{{ row['join_community'] or '—' }}</td>
+                <td>{{ row['share_findings'] or '—' }}</td>
+                <td>{{ row['upload_datasets'] or '—' }}</td>
+                <td>
+                    {% if row['data_concerns'] %}
+                        {% for t in row['data_concerns'].split(', ') %}<span class="tag">{{ t }}</span>{% endfor %}
+                    {% else %}—{% endif %}
+                </td>
+                <td>{% if row['doi_importance'] %}<span class="rating">{{ row['doi_importance'] }}</span>{% else %}—{% endif %}</td>
+                <td>{{ row['citizen_science'] or '—' }}</td>
+                <td>{{ row['conservation_impact'] or '—' }}</td>
+                <td>{% if row['likely_to_use'] %}<span class="rating">{{ row['likely_to_use'] }}</span>{% else %}—{% endif %}</td>
+                <td>{{ row['recommend'] or '—' }}</td>
+                <td class="cell-long" title="{{ row['unique_feature'] }}">{{ row['unique_feature'] or '—' }}</td>
+                <td class="cell-long" title="{{ row['improvements'] }}">{{ row['improvements'] or '—' }}</td>
+                <td class="cell-long" title="{{ row['comments'] }}">{{ row['comments'] or '—' }}</td>
+                <td>{{ row['future_testing'] or '—' }}</td>
+                <td>{{ row['email'] or '—' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty">No responses yet. Share the survey link to start collecting data!</div>
+    {% endif %}
+</div>
+
+</body>
+</html>

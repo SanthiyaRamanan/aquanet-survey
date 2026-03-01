@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AQUANET — Marine & Ocean Research Survey</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --deep: #030d1a; --ocean: #05244a; --mid: #0a3d6b;
+            --teal: #0e7c8a; --aqua: #00c9d4; --foam: #a8f0f4;
+            --light: #e8f7f8; --white: #f5fdfe; --gold: #f0c040; --error: #ff6b6b;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--deep); color: var(--light); font-family: 'DM Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
+        body::before {
+            content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background: radial-gradient(ellipse 80% 50% at 20% 80%, rgba(14,124,138,0.15) 0%, transparent 60%),
+                        radial-gradient(ellipse 60% 40% at 80% 20%, rgba(0,201,212,0.08) 0%, transparent 50%);
+        }
+        .particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+        .particle { position: absolute; border-radius: 50%; background: var(--aqua); opacity: 0; animation: float-up linear infinite; }
+        @keyframes float-up {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            10% { opacity: 0.4; } 90% { opacity: 0.2; }
+            100% { transform: translateY(-20vh) scale(1); opacity: 0; }
+        }
+        header { position: relative; z-index: 2; text-align: center; padding: 60px 20px 40px; border-bottom: 1px solid rgba(0,201,212,0.2); }
+        .logo-ring {
+            width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--aqua);
+            display: inline-flex; align-items: center; justify-content: center;
+            margin-bottom: 20px; background: rgba(0,201,212,0.1); animation: pulse-ring 3s ease-in-out infinite;
+        }
+        @keyframes pulse-ring {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(0,201,212,0.4); }
+            50% { box-shadow: 0 0 0 12px rgba(0,201,212,0.1), 0 0 0 24px rgba(0,201,212,0.05); }
+        }
+        .logo-ring svg { width: 40px; height: 40px; }
+        h1 {
+            font-family: 'Playfair Display', serif; font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 700;
+            background: linear-gradient(135deg, var(--white) 0%, var(--aqua) 50%, var(--foam) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 8px;
+        }
+        .subtitle { font-size: 1rem; color: rgba(168,240,244,0.7); font-style: italic; margin-bottom: 4px; }
+        .badge {
+            display: inline-block; background: rgba(0,201,212,0.15); border: 1px solid rgba(0,201,212,0.3);
+            color: var(--aqua); font-size: 0.75rem; padding: 4px 14px; border-radius: 20px;
+            letter-spacing: 1px; text-transform: uppercase; margin-top: 12px;
+        }
+
+        /* Progress */
+        .progress-wrap {
+            position: sticky; top: 0; z-index: 100;
+            background: rgba(3,13,26,0.95); backdrop-filter: blur(10px);
+            padding: 12px 20px; border-bottom: 1px solid rgba(0,201,212,0.1);
+        }
+        .progress-top { display: flex; justify-content: space-between; align-items: center; max-width: 800px; margin: 0 auto 8px; }
+        .progress-label { font-size: 0.78rem; color: rgba(168,240,244,0.7); letter-spacing: 0.5px; font-weight: 500; }
+        .progress-pct { font-size: 0.78rem; color: var(--aqua); font-weight: 600; white-space: nowrap; margin-left: 8px; }
+        .progress-bar-bg { background: rgba(255,255,255,0.06); border-radius: 4px; height: 5px; max-width: 800px; margin: 0 auto; }
+        .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--teal), var(--aqua)); border-radius: 4px; transition: width 0.5s ease; }
+        .step-dots { display: flex; justify-content: center; gap: 4px; margin-top: 8px; flex-wrap: wrap; }
+        .step-dot { width: 18px; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.1); transition: background 0.3s; flex-shrink: 0; }
+        .step-dot.active { background: var(--aqua); }
+        .step-dot.done { background: var(--teal); }
+
+        main { position: relative; z-index: 2; max-width: 820px; margin: 0 auto; padding: 40px 20px 80px; }
+        form { display: flex; flex-direction: column; }
+
+        /* Sections */
+        .section {
+            display: none; background: rgba(10,61,107,0.25); border: 1px solid rgba(0,201,212,0.12);
+            border-radius: 16px; padding: 36px; margin-bottom: 24px;
+            backdrop-filter: blur(4px); animation: fadeSlide 0.4s ease;
+        }
+        .section.active { display: block; }
+        @keyframes fadeSlide { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes fadeSlideBack { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
+        .section.slide-back { animation: fadeSlideBack 0.4s ease; }
+
+        .section-header { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; padding-bottom: 16px; border-bottom: 1px solid rgba(0,201,212,0.12); }
+        .section-num {
+            width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--teal), var(--aqua));
+            display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; color: var(--deep); flex-shrink: 0;
+        }
+        .section-title { font-family: 'Playfair Display', serif; font-size: 1.25rem; color: var(--foam); font-weight: 700; }
+
+        .q-group { margin-bottom: 24px; }
+        .q-group:last-of-type { margin-bottom: 0; }
+        label.q-label { display: block; font-size: 0.95rem; color: var(--light); margin-bottom: 10px; font-weight: 500; line-height: 1.5; }
+        .q-num { color: var(--aqua); font-weight: 700; margin-right: 6px; }
+        .req-star { color: var(--error); margin-left: 3px; }
+
+        /* Errors */
+        .error-msg { display: none; color: var(--error); font-size: 0.8rem; margin-top: 8px; padding: 6px 12px; background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.25); border-radius: 6px; }
+        .q-group.has-error .error-msg { display: block; }
+        .q-group.has-error input[type="text"],
+        .q-group.has-error input[type="email"],
+        .q-group.has-error input[type="number"],
+        .q-group.has-error textarea { border-color: var(--error); }
+        .q-group.has-error .radio-grid,
+        .q-group.has-error .check-grid,
+        .q-group.has-error .likert-row { outline: 1px solid rgba(255,107,107,0.4); border-radius: 10px; }
+
+        /* Inputs */
+        input[type="text"], input[type="email"], input[type="number"], textarea, select {
+            width: 100%; background: rgba(5,36,74,0.6); border: 1px solid rgba(0,201,212,0.2);
+            border-radius: 8px; color: var(--light); font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+            padding: 12px 16px; transition: border-color 0.3s, box-shadow 0.3s; outline: none;
+        }
+        input[type="text"]:focus, input[type="email"]:focus, input[type="number"]:focus, textarea:focus {
+            border-color: var(--aqua); box-shadow: 0 0 0 3px rgba(0,201,212,0.12);
+        }
+        textarea { min-height: 90px; resize: vertical; }
+
+        /* Info box */
+        .info-box {
+            background: rgba(0,201,212,0.07); border: 1px solid rgba(0,201,212,0.2);
+            border-radius: 10px; padding: 18px 20px; margin-bottom: 24px;
+            font-size: 0.9rem; color: rgba(168,240,244,0.9); line-height: 1.75;
+        }
+        .info-box strong { color: var(--aqua); }
+
+        /* Radio / Checkbox grids */
+        .radio-grid, .check-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+        .radio-grid label, .check-grid label {
+            display: flex; align-items: center; gap: 10px; background: rgba(5,36,74,0.5);
+            border: 1px solid rgba(0,201,212,0.15); border-radius: 8px; padding: 11px 14px;
+            cursor: pointer; font-size: 0.875rem; color: rgba(232,247,248,0.85); transition: all 0.2s; user-select: none;
+        }
+        .radio-grid label:hover, .check-grid label:hover { background: rgba(0,201,212,0.1); border-color: rgba(0,201,212,0.35); color: var(--light); }
+        .radio-grid input[type="radio"], .check-grid input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--aqua); flex-shrink: 0; }
+        .radio-grid label:has(input:checked), .check-grid label:has(input:checked) { background: rgba(0,201,212,0.12); border-color: var(--aqua); }
+
+        /* Likert */
+        .likert-row { display: flex; gap: 6px; }
+        .likert-row label {
+            flex: 1; text-align: center; background: rgba(5,36,74,0.5);
+            border: 1px solid rgba(0,201,212,0.15); border-radius: 8px; padding: 10px 4px;
+            cursor: pointer; font-size: 0.8rem; transition: all 0.2s;
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+        }
+        .likert-row label small { font-size: 0.65rem; color: rgba(168,240,244,0.5); line-height: 1.2; }
+        .likert-row label:hover { background: rgba(0,201,212,0.1); border-color: rgba(0,201,212,0.35); }
+        .likert-row label:has(input:checked) { background: rgba(0,201,212,0.15); border-color: var(--aqua); color: var(--aqua); }
+        .likert-row label:has(input:checked) small { color: rgba(0,201,212,0.7); }
+        .likert-row input[type="radio"] { accent-color: var(--aqua); }
+
+        /* Nav buttons */
+        .nav-buttons { display: flex; justify-content: space-between; align-items: center; margin-top: 32px; gap: 12px; }
+        .btn-nav {
+            display: inline-flex; align-items: center; gap: 8px; padding: 14px 32px;
+            border-radius: 50px; font-family: 'DM Sans', sans-serif; font-size: 0.95rem;
+            font-weight: 600; cursor: pointer; border: none; transition: all 0.3s;
+        }
+        .btn-back { background: rgba(0,201,212,0.1); border: 1px solid rgba(0,201,212,0.25); color: var(--aqua); }
+        .btn-back:hover { background: rgba(0,201,212,0.18); }
+        .btn-back:disabled { opacity: 0.3; cursor: not-allowed; }
+        .btn-next { background: linear-gradient(135deg, var(--teal), var(--aqua)); color: var(--deep); box-shadow: 0 4px 20px rgba(0,201,212,0.25); }
+        .btn-next:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,201,212,0.4); }
+        .btn-submit-final { background: linear-gradient(135deg, #f0c040, var(--aqua)); color: var(--deep); box-shadow: 0 4px 20px rgba(240,192,64,0.3); }
+        .btn-submit-final:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(240,192,64,0.45); }
+        .section-note { font-size: 0.78rem; color: rgba(168,240,244,0.4); text-align: center; margin-top: 10px; }
+
+        footer { position: relative; z-index: 2; text-align: center; padding: 20px; color: rgba(168,240,244,0.35); font-size: 0.78rem; border-top: 1px solid rgba(0,201,212,0.08); }
+
+        /* ── MOBILE ─────────────────────────────────── */
+        @media (max-width: 600px) {
+            header { padding: 36px 16px 24px; }
+            .logo-ring { width: 60px; height: 60px; margin-bottom: 14px; }
+            h1 { font-size: 1.6rem; }
+            .subtitle { font-size: 0.82rem; }
+            .badge { font-size: 0.7rem; }
+            main { padding: 24px 14px 60px; }
+            .section { padding: 20px 15px; border-radius: 12px; }
+            .section-title { font-size: 1rem; }
+            .section-num { width: 30px; height: 30px; font-size: 0.78rem; }
+            .q-label { font-size: 0.88rem; }
+            .radio-grid, .check-grid { grid-template-columns: 1fr; gap: 8px; }
+            .radio-grid label, .check-grid label { padding: 10px 12px; font-size: 0.84rem; }
+            .likert-row { gap: 4px; }
+            .likert-row label { padding: 8px 2px; font-size: 0.72rem; }
+            .likert-row label small { font-size: 0.58rem; }
+            input[type="text"], input[type="email"], input[type="number"], textarea { padding: 10px 13px; font-size: 0.88rem; }
+            .nav-buttons { flex-direction: column-reverse; gap: 10px; margin-top: 24px; }
+            .btn-nav { width: 100%; justify-content: center; padding: 13px 20px; font-size: 0.9rem; }
+            .step-dot { width: 14px; height: 4px; }
+            .progress-label { font-size: 0.7rem; }
+            .progress-pct { font-size: 0.7rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="particles" id="particles"></div>
+
+<header>
+    <div class="logo-ring">
+        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="20" cy="20" r="18" stroke="#00c9d4" stroke-width="1.5"/>
+            <path d="M6 22 C10 18, 14 26, 18 22 C22 18, 26 26, 34 22" stroke="#00c9d4" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            <path d="M8 27 C12 23, 16 30, 20 27 C24 23, 28 30, 32 27" stroke="rgba(0,201,212,0.5)" stroke-width="1" fill="none" stroke-linecap="round"/>
+            <circle cx="20" cy="14" r="3" stroke="#a8f0f4" stroke-width="1.5"/>
+            <line x1="20" y1="17" x2="20" y2="21" stroke="#a8f0f4" stroke-width="1.5"/>
+        </svg>
+    </div>
+    <h1>AQUANET Survey</h1>
+    <p class="subtitle">Marine & Ocean Research Platform — Community Feedback Survey</p>
+    <span class="badge">35 Questions · 12 Sections</span>
+</header>
+
+<div class="progress-wrap">
+    <div class="progress-top">
+        <span class="progress-label" id="progressLabel">Section 1 — Respondent Background</span>
+        <span class="progress-pct" id="progressPct">1 / 12</span>
+    </div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill" style="width:8.33%"></div></div>
+    <div class="step-dots" id="stepDots">
+        <div class="step-dot active"></div><div class="step-dot"></div><div class="step-dot"></div>
+        <div class="step-dot"></div><div class="step-dot"></div><div class="step-dot"></div>
+        <div class="step-dot"></div><div class="step-dot"></div><div class="step-dot"></div>
+        <div class="step-dot"></div><div class="step-dot"></div><div class="step-dot"></div>
+    </div>
+</div>
+
+<main>
+<form action="/submit" method="POST" id="surveyForm" novalidate>
+
+<!-- ── SECTION 1: Respondent Background ── -->
+<div class="section active" data-section="0">
+    <div class="section-header"><div class="section-num">1</div><div class="section-title">Respondent Background</div></div>
+
+    <div class="q-group" data-required="text">
+        <label class="q-label"><span class="q-num">Q1.</span> Name <span class="req-star">*</span></label>
+        <input type="text" name="name" placeholder="Your full name...">
+        <div class="error-msg">Please enter your name.</div>
+    </div>
+
+    <div class="q-group" data-required="number">
+        <label class="q-label"><span class="q-num">Q2.</span> Age <span class="req-star">*</span></label>
+        <input type="number" name="age" placeholder="Your age..." min="10" max="100">
+        <div class="error-msg">Please enter your age.</div>
+    </div>
+
+    <div class="q-group" data-required="radio" data-name="role">
+        <label class="q-label"><span class="q-num">Q3.</span> What best describes your role? <span class="req-star">*</span></label>
+        <div class="radio-grid">
+            <label><input type="radio" name="role" value="Marine researcher"><span>Marine researcher</span></label>
+            <label><input type="radio" name="role" value="Oceanographer"><span>Oceanographer</span></label>
+            <label><input type="radio" name="role" value="Fisheries scientist"><span>Fisheries scientist</span></label>
+            <label><input type="radio" name="role" value="Student"><span>Student</span></label>
+            <label><input type="radio" name="role" value="Citizen scientist"><span>Citizen scientist</span></label>
+            <label><input type="radio" name="role" value="Other"><span>Other</span></label>
+        </div>
+        <div class="error-msg">Please select your role.</div>
+    </div>
+
+    <div class="q-group" data-required="radio" data-name="specialization">
+        <label class="q-label"><span class="q-num">Q4.</span> Primary area of specialization <span class="req-star">*</span></label>
+        <div class="radio-grid">
+            <label><input type="radio" name="specialization" value="Marine biology"><span>Marine biology</span></label>
+            <label><input type="radio" name="specialization" value="Oceanography"><span>Oceanography</span></label>
+            <label><input type="radio" name="specialization" value="Fisheries"><span>Fisheries</span></label>
+            <label><input type="radio" name="specialization" value="Climate science"><span>Climate science</span></label>
+            <label><input type="radio" name="specialization" value="Genomics"><span>Genomics</span></label>
+            <label><input type="radio" name="specialization" value="GIS"><span>GIS</span></label>
+            <label><input type="radio" name="specialization" value="Environmental science"><span>Environmental science</span></label>
+            <label><input type="radio" name="specialization" value="Other"><span>Other</span></label>
+        </div>
+        <div class="error-msg">Please select your specialization.</div>
+    </div>
+
+    <div class="q-group" data-required="radio" data-name="experience">
+        <label class="q-label"><span class="q-num">Q5.</span> Years of experience in ocean-related work <span class="req-star">*</span></label>
+        <div class="radio-grid">
+            <label><input type="radio" name="experience" value="Student"><span>Student</span></label>
+            <label><input type="radio" name="experience" value="Less than 2 years"><span>Less than 2 years</span></label>
+            <label><input type="radio" name="experience" value="2–5 years"><span>2–5 years</span></label>
+            <label><input type="radio" name="experience" value="5–10 years"><span>5–10 years</span></label>
+            <label><input type="radio" name="experience" value="More than 10 years"><span>More than 10 years</span></label>
+        </div>
+        <div class="error-msg">Please select your experience level.</div>
+    </div>
+
+    <div class="q-group" data-required="radio" data-name="region">
+        <label class="q-label"><span class="q-num">Q6.</span> Which region do you mainly work in? <span class="req-star">*</span></label>
+        <div class="radio-grid">
+            <label><input type="radio" name="region" value="Coastal"><span>Coastal</span></label>
+            <label><input type="radio" name="region" value="Deep ocean"><span>Deep ocean</span></label>
+            <label><input type="radio" name="region" value="Estuary"><span>Estuary</span></label>
+            <label><input type="radio" name="region" value="Freshwater"><span>Freshwater</span></label>
+            <label><input type="radio" name="region" value="Multiple regions"><span>Multiple regions</span></label>
+        </div>
+        <div class="error-msg">Please select your region.</div>
+    </div>
+
+    <div class="nav-buttons">
+        <button type="button" class="btn-nav btn-back" disabled onclick="navigate(-1)">← Back</button>
+        <button type="button" class="btn-nav btn-next" onclick="navigate(1)">Next →</button>
+    </div>
+    <p class="section-note">All fields marked <span style="color:var(--error)">*</span> are required</p>
+</div>
+
+<!-- ── SECTION 2: Current Research Problems ── -->
+<div class="section" data-section="1">
+    <div class="section-header"><div class="section-num">2</div><div class="section-title">Current Research Problems</div></div>
+
+    <div class="q-group" data-required="checkbox" data-name="challenges">
+        <label class="q-label"><span class="q-num">Q7.</span> Major challenges in marine or ocean research (select all that apply) <span class="req-star">*</span></label>
+        <div class="check-grid">
+            <label><input type="checkbox" name="challenges" value="Data access"><span>Data access</span></label>
+            <label><input type="checkbox" name="challenges" value="Fragmented platforms"><span>Fragmented platforms</span></label>
+            <label><input type="checkbox" name="challenges" value="Funding"><span>Funding</span></label>
+            <label><input type="checkbox" name="challenges" value="Collaboration"><span>Collaboration</span></label>
+            <label><input type="checkbox" name="challenges" value="Visualization"><span>Visualization</span></label>
+            <label><input type="checkbox" name="challenges" value="Other"><span>Other</span></label>
+        </div>
+        <div class="error-msg">Please select at least one challenge.</div>
+    </div>
+
+    <div class="q-group" data-required="radio" data-name="data_difficulty">
+        <label class="q-label"><span class="q-num">Q8.</span> How difficult is it to find reliable marine datasets? <span class="req-star">*</span></label>
+        <div class="likert-row">
+            <label><input type="radio" name="data_difficulty" value="1"><span>1<br><small>Very difficult</small></span></label>
+            <label><input type="radio" name="data_difficulty" value="2"><span>2</span></label>
+            <label><input type="radio" name="data_difficulty" value="3"><span>3<br><small>Neutral</small></span></label>
+            <label><input type="radio" name="data_difficulty" value="4"><span>4</span></label>
+            <label><input type="radio" name="data_difficulty" value="5"><span>5<br><small>Very easy</small></span></label>
+        </div>
+        <div class="error-msg">Please select a rating.</div>
+    </div>
+
+    <div class="q-group" data-required="radio" data-name="datasets_scattered">
+        <label class="q-label"><span class="q-num">Q9.</span> Are research datasets scattered across multiple websites/portals? <span class="req-star">*</span></label>
+        <div class="radio-grid">
+            <label><input type="radio" name="datasets_scattered" value="Yes"><span>Yes</span></label>
+            <label><input type="radio" name="datasets_scattered" value="No"><span>No</span></label>
+            <label><input type="radio" name="datasets_scattered" value="Sometimes"><span>Sometimes</span></label>
+        </div>
+        <div class="error-msg">Please select an option.</div>
+    </div>
+
+    <div class="q-group" data-required="checkbox" data-name="tools_used">
+        <label class="q-label"><span class="q-num">Q10.</span> Tools you currently use to manage data (select all that apply) <span class="req-star">*</span></label>
+        <div class="check-grid">
+            <label><input type="checkbox" name="tools_used" value="Excel"><span>Excel</span></label>
+            <label><input type="checkbox" name="tools_used" value="GIS tools"><span>GIS tools</span></label>
+            <label><input type="checkbox" name="tools_used" value="Government portals"><span>Government portals</span></label>
+            <label><input type="checkbox" name="tools_used" value="Research papers only"><span>Research papers only</span></label>
+            <label><input type="checkbox" name="tools_used" value="Cloud storage"><span>Cloud storage</span></label>
+        </div>
+        <div class="error-msg">Please select at least one tool.</div>
+    </div>
+
+    <div class="q-group" data-required="radio" data-name="platform_satisfaction">
+        <label class="q-label"><span class="q-num">Q11.</span> How satisfied are you with existing marine research platforms? <span class="req-star">*</span></label>
+        <div class="likert-row">
+            <label><input type="radio" name="platform_satisfaction" value="1"><span>1<br><small>Not satisfied</small></span></label>
+            <label><input type="radio" name="platform_satisfaction" value="2"><span>2</span></label>
+            <label><input type="radio" name="platform_satisfaction" value="3"><span>3<br><small>Neutral</small></span></label>
+            <label><input type="radio" name="platform_satisfaction" value="4"><span>4</span></label>
+            <label><input type="radio" name="platform_satisfaction" value="5"><span>5<br><small>Very satisfied</small></span></label>
+        </div>
+        <div class="error-msg">Please select a rating.</div>
+    </div>
+
+    <div class="q-group" data-required="text">
+        <label class="q-label"><span class="q-num">Q12.</span> What important feature is missing in current platforms? <span class="req-star">*</span></label>
+        <textarea name="missing_feature" placeholder="Describe what you feel is missing..."></textarea>
+        <div class="error-msg">Please share what feature is missing.</div>
+    </div>
+
+    <div class="nav-buttons">
+        <button type="button" class="btn-nav btn-back" onclick="navigate(-1)">← Back</button>
+        <button type="button" class="btn-nav btn-next" onclick="navigate(1)">Next →</button>
+    </div>
+    <p class="section-note">All fields marked <span style="color:var(--error)">*</span> are required</p>
+</div>
+
+<!-- ── SECTION 3: Data & Technology Gaps ── -->
+<div class="section" data-section="2">
+    <div class="section-header"><div class="section-num">3</div><div class="section-title">Data & Technology Gaps</div></div>
+
+    <div class="q-group" data-required="radio" data-name="historical_data_access">
+        <label class="q-label"><span class="q-num">Q13.</span> Do you have easy access to historical ocean and climate data? <span class="req-star">*</span></label>
+        <div class="radio-grid">
+            <label><input type="radio" name="historical_data_access" value="Yes"><span>Yes</span></label>
+            <label><input type="radio" name="historical_data_access" value="No"><span>No</span></label>
+            <label><input type="radio" name="historical_data_access" value="Limited"><span>Limited</span></label>
+        </div>
+        <div class="error-msg">Please select an option.</div>
+    </div>
+
+    <div class="q-group" data-required="radio" data-name="map_viz_importance">
+        <label class="q-label"><span class="q-num">Q14.</span> How important is interactive map-based visualization for your work? <span class="req-star">*</span></label>
+        <div class="likert-row">
+            <label><input type="radio" name="map_viz_importance" value="1"><span>1<br><small>Not important</small></span></label>
+            <label><input type="radio" name="map_viz_importance" value="2"><span>2</span></label>
+            <label><input type="radio" name="map_viz_importance" value="3"><span>3<br><small>Neutral</small></span></label>
+            <label><input type="radio" name="map_viz_importance" value="4"><span>4</span></label>
+            <label><input type="radio" name="map_viz_importance" value="5"><span>5<br><small>Critical</small></span></label>
+        </div>
+        <div class="error-msg">Please select a rating.</div>
+    </div>
+
+    <div class="q-group" data-required="radio" data-name="fisheries_integration">
+        <label class="q-label"><span class="q-num">Q15.</span> Do you face difficulties integrating fisheries data with environmental data? <span class="req-star">*</span></label>
+        <div class="radio-grid">
+            <label><input type="radio" name="fisheries_integration" value="Yes"><span>Yes</span></label>
+            <label><input type="radio" name="fisheries_integration" value="No"><span>No</span></label>
+            <label><input type="radio" name="fisheries_integration" value="Sometimes"><span>Sometimes</span></label>
+        </div>
+        <div class="error-msg">Please select an option.</div>
+    </div>
+
+    <div class="q-group" data-required="radio" data-name="species_data_frequency">
+        <label class="q-label"><span class="q-num">Q16.</span> How often do you use species distribution or population data? <span class="req-star">*</span></label>
+        <div class="radio-grid">
+            <label><input type="radio" name="species_data_frequency" value="Daily"><span>Daily</span></label>
+            <label><input type="radio" name="species_data_frequency" value="Weekly"><span>Weekly</span></label>
+            <label><input type="radio" name="species_data_frequency" value="Occasionally"><span>Occasionally</span></label>
+            <label><input type="radio" name="species_data_frequency" value="Rarely"><span>Rarely</span></label>
+        </div>
+        <div class="error-msg">Please select an option.</div>
+    </div>
+
+    <div class="nav-buttons">
+        <button type="button" class="btn-nav btn-back" onclick="navigate(-1)">← Back</button>
+        <button type="button" class="btn-nav btn-next" onclick="navigate(1)">Next →</button>
+    </div>
+    <p class="section-note">All fields marked <span style="color:var(--error)">*</span> are required</p>
+</div>
+
+<!-- ── SECTION 4: Awareness ── -->
+<div class="section" data-section="3">
+    <div class="section-header"><div class="section-num">4</div><div class="section-title">Awareness of Integrated Platforms</div></div>
+
+    <div class="q-group" data-required="radio" data-name="aware_integrated_platform">
+        <label class="q-label"><span class="q-num">Q17.</span> Are you aware of any platform that combines data, maps, and research community in one place? <span class="req-star">*</span></label>
+        <div class="radio-grid">
+            <label><input type="radio" name="aware_integrated_platform" value="Yes"><span>Yes</span></label>
+            <label><input type="radio" name="aware_integrated_platform" value="No"><span>No</span></label>
+        </div>
+        <div class="error-msg">Please select an option.</div>
+    </div>
+
+    <div class="q-group" data-required="radio" data-name="platform_meets_needs">
+        <label class="q-label"><span class="q-num">Q18.</span> If yes, does that platform fully meet your research needs? <span class="req-star">*</span></label>
+        <div class="radio-grid">
+            <label><input type="radio" name="platform_meets_needs" value="Yes"><span>Yes</span></label>
+            <label><input type="radio" name="platform_meets_needs" value="No"><span>No</span></label>
+            <label><input type="radio" name="platform_meets_needs" value="Partially"><span>Partially</span></label>
+        </div>
+        <div class="error-msg">Please select an option.</div>
+    </div>
+
+    <div class="nav-buttons">
+        <button type="button" class="btn-nav btn-back" onclick="navigate(-1)">← Back</button>
+        <button type="button" class="btn-nav btn-next" onclick="navigate(1)">Next →</button>
+    </div>
+    <p class="section-note">All fields marked <span style="color:var(--error)">*</span> are required</p>
+</div>
+
+<!-- ── SECTION 5: Introducing AQUANET ── -->
+<div class="section" data-section="4">
+    <div class="section-header"><div class="section-num">5</div><div class="section-title">Introducing AQUANET 🌊</div></div>
+    <div class="info-box">
+        <strong>What is AQUANET?</strong><br><br>
+        AQUANET is an <strong>integrated digital platform</strong> combining marine datasets, interactive ocean maps, fisheries statistics, genomics &amp; eDNA data, acoustic data, and a research-focused collaboration community — all in one place. It is designed to bridge data fragmentation, empower researchers, and support conservation decisions worldwide.
+    </div>
+    <p style="font-size:0.88rem; color:rgba(168,240,244,0.65); line-height:1.7;">Please read the description above before proceeding. The following sections will ask for your perception of AQUANET.</p>
+    <div class="nav-buttons">
+        <button type="button" class="btn-nav btn-back" onclick="navigate(-1)">← Back</button>
+        <button type="button" class="btn-nav btn-next" onclick="navigate(1)">Continue →</button>
+    </div>
+</div>
+
+<!-- ── SECTION 6: Perception of AQUANET ── -->
+<div class="section" data-section="5">
+    <div class="section-header"><div class="section-num">6</div><div class="section-title">Perception of AQUANET</div></div>
+
+    <div class="q-group" data-required="radio" data-name="aquanet_usefulness">
+        <label class="q-label"><span class="q-num">Q19.</span> How useful do you think AQUANET would be for your work? <span class="req-star">*</span></label>
+        <div class="likert-row">
+            <label><input type="radio" name="aquanet_usefulness" value="1"><span>1<br><small>Not useful</small></span></label>
+            <label><input type="radio" name="aquanet_usefulness" value="2"><span>2</span></label>
+            <label><input type="radio" name="aquanet_usefulness" value="3"><span>3<br><small>Neutral</small></span></label>
+            <label><input type="radio" name="aquanet_usefulness" value="4"><span>4</span></label>
+            <label><input type="radio" name="aquanet_usefulness" value="5"><span>5<br><small>Extremely useful</small></span></label>
+        </div>
+        <div class="error-msg">Please select a rating.</div>
+    </div>
+
+    <div class="q-group" data-required="checkbox" data-name="valuable_features">
+        <label class="q-label"><span class="q-num">Q20.</span> Which AQUANET features would be most valuable to you? <span class="req-star">*</span></label>
+        <div class="check-grid">
+            <label><input type="checkbox" name="valuable_features" value="Datasets"><span>Datasets</span></label>
+            <label><input type="checkbox" name="valuable_features" value="Interactive Maps"><span>Interactive Maps</span></label>
+            <label><input type="checkbox" name="valuable_features" value="Species intelligence"><span>Species intelligence</span></label>
+            <label><input type="checkbox" name="valuable_features" value="Fisheries data"><span>Fisheries data</span></label>
+            <label><input type="checkbox" name="valuable_features" value="Genomics & eDNA"><span>Genomics &amp; eDNA</span></label>
+            <label><input type="checkbox" name="valuable_features" value="Research Community"><span>Research Community</span></label>
+        </div>
+        <div class="error-msg">Please select at least one feature.</div>
+    </div>
+
+    <div class="q-group" data-required="radio" data-name="reduce_search_time">
+        <label class="q-label"><span class="q-num">Q21.</span> Would AQUANET reduce the time spent searching for data? <span class="req-star">*</span></label>
+        <div class="radio-grid">
+            <label><input type="radio" name="reduce_search_time" value="Yes"><span>Yes</span></label>
+            <label><input type="radio" name="reduce_search_time" value="Maybe"><span>Maybe</span></label>
+            <label><input type="radio" name="reduce_search_time" value="No"><span>No</span></label>
+        </div>
+        <div class="error-msg">Please select an option.</div>
+    </div>
+
+    <div class="q-group" data-required="radio" data-name="genomics_helpfulness">
+        <label class="q-label"><span class="q-num">Q22.</span> How helpful is having genomics, eDNA, and acoustic data on the same platform? <span class="req-star">*</span></label>
+        <div class="likert-row">
+            <label><input type="radio" name="genomics_helpfulness" value="1"><span>1<br><small>Not helpful</small></span></label>
+            <label><input type="radio" name="genomics_helpfulness" value="2"><span>2</span></label>
+            <label><input type="radio" name="genomics_helpfulness" value="3"><span>3<br><small>Neutral</small></span></label>
+            <label><input type="radio" name="genomics_helpfulness" value="4"><span>4</span></label>
+            <label><input type="radio" name="genomics_helpfulness" value="5"><span>5<br><small>Very helpful</small></span></label>
+        </div>
+        <div class="error-msg">Please select a rating.</div>
+    </div>
+
+    <div class="nav-buttons">
+        <button type="button" class="btn-nav btn-back" onclick="navigate(-1)">← Back</button>
+        <button type="button" class="btn-nav btn-next" onclick="navigate(1)">Next →</button>
+    </div>
+    <p class="section-note">All fields marked <span style="color:var(--error)">*</span> are required</p>
+</div>
+
+<!-- ── SECTION 7: Community & Collaboration ── -->
+<div class="section" data-section="6">
+    <div class="section-header"><div class="section-num">7</div><div class="section-title">Community & Collaboration</div></div>
+
+    <div class="q-group" data-required="radio" data-name="collab_importance">
+        <label class="q-label"><span class="q-num">Q23.</span> How important is collaboration with other researchers in your work? <span class="req-star">*</span></label>
+        <div class="likert-row">
+            <label><input type="radio" name="collab_importance" value="1"><span>1<br><small>Not important</small></span></label>
+            <label><input type="radio" name="collab_importance" value="2"><span>2</span></label>
+            <label><input type="radio" name="collab_importance" value="3"><span>3<br><small>Neutral</small></span></label>
+            <label><input type="radio" name="collab_importance" value="4"><span>4</span></label>
+            <label><input type="radio" name="collab_importance" value="5"><span>5<br><small>Critical</small></span></label>
+        </div>
+        <div class="error-msg">Please select a rating.</div>
+    </div>
+
+    <div class="q-group" data-required="radio" data-name="join_community">
+        <label class="q-label"><span class="q-num">Q24.</span> Would you actively participate in a research-focused online community? <span class="req-star">*</span></label>
+        <div class="radio-grid">
+            <label><input type="radio" name="join_community" value="Yes"><span>Yes</span></label>
+            <label><input type="radio" name="join_community" value="Maybe"><span>Maybe</span></label>
+            <label><input type="radio" name="join_community" value="No"><span>No</span></label>
+        </div>
+        <div class="error-msg">Please select an option.</div>
+    </div>
+
+    <div class="q-group" data-required="radio" data-name="share_findings">
+        <label class="q-label"><span class="q-num">Q25.</span> Would you share field updates, photos, or findings on AQUANET? <span class="req-star">*</span></label>
+        <div class="radio-grid">
+            <label><input type="radio" name="share_findings" value="Yes"><span>Yes</span></label>
+            <label><input type="radio" name="share_findings" value="Maybe"><span>Maybe</span></label>
+            <label><input type="radio" name="share_findings" value="No"><span>No</span></label>
+        </div>
+        <div class="error-msg">Please select an option.</div>
+    </div>
+
+    <div class="nav-buttons">
+        <button type="button" class="btn-nav btn-back" onclick="navigate(-1)">← Back</button>
+        <button type="button" class="btn-nav btn-next" onclick="navigate(1)">Next →</button>
+    </div>
+    <p class="section-note">All fields marked <span style="color:var(--error)">*</span> are required</p>
+</div>
+
+<!-- ── SECTION 8: Data Sharing & Trust ── -->
+<div class="section" data-section="7">
+    <div class="section-header"><div class="section-num">8</div><div class="section-title">Data Sharing & Trust</div></div>
+
+    <div class="q-group" data-required="radio" data-name="upload_datasets">
+        <label class="q-label"><span class="q-num">Q26.</span> Would you upload your datasets if proper credit and licensing are ensured? <span class="req-star">*</span></label>
+        <div class="radio-grid">
+            <label><input type="radio" name="upload_datasets" value="Yes"><span>Yes</span></label>
+            <label><input type="radio" name="upload_datasets" value="Maybe"><span>Maybe</span></label>
+            <label><input type="radio" name="upload_datasets" value="No"><span>No</span></label>
+        </div>
+        <div class="error-msg">Please select an option.</div>
+    </div>
+
+    <div class="q-group" data-required="checkbox" data-name="data_concerns">
+        <label class="q-label"><span class="q-num">Q27.</span> What concerns would you have about using AQUANET? <span class="req-star">*</span></label>
+        <div class="check-grid">
+            <label><input type="checkbox" name="data_concerns" value="Data privacy"><span>Data privacy</span></label>
+            <label><input type="checkbox" name="data_concerns" value="Data misuse"><span>Data misuse</span></label>
+            <label><input type="checkbox" name="data_concerns" value="Data quality"><span>Data quality</span></label>
+            <label><input type="checkbox" name="data_concerns" value="Learning curve"><span>Learning curve</span></label>
+            <label><input type="checkbox" name="data_concerns" value="None"><span>None</span></label>
+        </div>
+        <div class="error-msg">Please select at least one option.</div>
+    </div>
+
+    <div class="q-group" data-required="radio" data-name="doi_importance">
+        <label class="q-label"><span class="q-num">Q28.</span> How important is dataset citation (DOI) for you? <span class="req-star">*</span></label>
+        <div class="likert-row">
+            <label><input type="radio" name="doi_importance" value="1"><span>1<br><small>Not important</small></span></label>
+            <label><input type="radio" name="doi_importance" value="2"><span>2</span></label>
+            <label><input type="radio" name="doi_importance" value="3"><span>3<br><small>Neutral</small></span></label>
+            <label><input type="radio" name="doi_importance" value="4"><span>4</span></label>
+            <label><input type="radio" name="doi_importance" value="5"><span>5<br><small>Very important</small></span></label>
+        </div>
+        <div class="error-msg">Please select a rating.</div>
+    </div>
+
+    <div class="nav-buttons">
+        <button type="button" class="btn-nav btn-back" onclick="navigate(-1)">← Back</button>
+        <button type="button" class="btn-nav btn-next" onclick="navigate(1)">Next →</button>
+    </div>
+    <p class="section-note">All fields marked <span style="color:var(--error)">*</span> are required</p>
+</div>
+
+<!-- ── SECTION 9: Citizen Science & Impact ── -->
+<div class="section" data-section="8">
+    <div class="section-header"><div class="section-num">9</div><div class="section-title">Citizen Science & Impact</div></div>
+
+    <div class="q-group" data-required="radio" data-name="citizen_science">
+        <label class="q-label"><span class="q-num">Q29.</span> Should citizen science data be included with expert validation? <span class="req-star">*</span></label>
+        <div class="radio-grid">
+            <label><input type="radio" name="citizen_science" value="Yes"><span>Yes</span></label>
+            <label><input type="radio" name="citizen_science" value="Maybe"><span>Maybe</span></label>
+            <label><input type="radio" name="citizen_science" value="No"><span>No</span></label>
+        </div>
+        <div class="error-msg">Please select an option.</div>
+    </div>
+
+    <div class="q-group" data-required="radio" data-name="conservation_impact">
+        <label class="q-label"><span class="q-num">Q30.</span> Do you think AQUANET could help in conservation and policy decisions? <span class="req-star">*</span></label>
+        <div class="radio-grid">
+            <label><input type="radio" name="conservation_impact" value="Yes"><span>Yes</span></label>
+            <label><input type="radio" name="conservation_impact" value="Maybe"><span>Maybe</span></label>
+            <label><input type="radio" name="conservation_impact" value="No"><span>No</span></label>
+        </div>
+        <div class="error-msg">Please select an option.</div>
+    </div>
+
+    <div class="nav-buttons">
+        <button type="button" class="btn-nav btn-back" onclick="navigate(-1)">← Back</button>
+        <button type="button" class="btn-nav btn-next" onclick="navigate(1)">Next →</button>
+    </div>
+    <p class="section-note">All fields marked <span style="color:var(--error)">*</span> are required</p>
+</div>
+
+<!-- ── SECTION 10: Overall Evaluation ── -->
+<div class="section" data-section="9">
+    <div class="section-header"><div class="section-num">10</div><div class="section-title">Overall Evaluation</div></div>
+
+    <div class="q-group" data-required="radio" data-name="likely_to_use">
+        <label class="q-label"><span class="q-num">Q31.</span> How likely are you to use AQUANET if it is launched? <span class="req-star">*</span></label>
+        <div class="likert-row">
+            <label><input type="radio" name="likely_to_use" value="1"><span>1<br><small>Very unlikely</small></span></label>
+            <label><input type="radio" name="likely_to_use" value="2"><span>2</span></label>
+            <label><input type="radio" name="likely_to_use" value="3"><span>3<br><small>Neutral</small></span></label>
+            <label><input type="radio" name="likely_to_use" value="4"><span>4</span></label>
+            <label><input type="radio" name="likely_to_use" value="5"><span>5<br><small>Definitely will</small></span></label>
+        </div>
+        <div class="error-msg">Please select a rating.</div>
+    </div>
+
+    <div class="q-group" data-required="radio" data-name="recommend">
+        <label class="q-label"><span class="q-num">Q32.</span> Would you recommend AQUANET to colleagues or students? <span class="req-star">*</span></label>
+        <div class="radio-grid">
+            <label><input type="radio" name="recommend" value="Yes"><span>Yes</span></label>
+            <label><input type="radio" name="recommend" value="Maybe"><span>Maybe</span></label>
+            <label><input type="radio" name="recommend" value="No"><span>No</span></label>
+        </div>
+        <div class="error-msg">Please select an option.</div>
+    </div>
+
+    <div class="nav-buttons">
+        <button type="button" class="btn-nav btn-back" onclick="navigate(-1)">← Back</button>
+        <button type="button" class="btn-nav btn-next" onclick="navigate(1)">Next →</button>
+    </div>
+    <p class="section-note">All fields marked <span style="color:var(--error)">*</span> are required</p>
+</div>
+
+<!-- ── SECTION 11: Open Feedback ── -->
+<div class="section" data-section="10">
+    <div class="section-header"><div class="section-num">11</div><div class="section-title">Open Feedback ✦ Very Important</div></div>
+
+    <div class="q-group" data-required="text">
+        <label class="q-label"><span class="q-num">Q33.</span> What feature would make AQUANET unique compared to existing platforms? <span class="req-star">*</span></label>
+        <textarea name="unique_feature" placeholder="Describe a feature that would set AQUANET apart..."></textarea>
+        <div class="error-msg">Please share your thoughts.</div>
+    </div>
+
+    <div class="q-group" data-required="text">
+        <label class="q-label"><span class="q-num">Q34.</span> What improvements or additions would you suggest for AQUANET? <span class="req-star">*</span></label>
+        <textarea name="improvements" placeholder="Your suggestions for improvement..."></textarea>
+        <div class="error-msg">Please share your suggestions.</div>
+    </div>
+
+    <div class="q-group" data-required="text">
+        <label class="q-label"><span class="q-num">Q35.</span> Any other comments or expectations from AQUANET? <span class="req-star">*</span></label>
+        <textarea name="comments" placeholder="Share any additional thoughts..."></textarea>
+        <div class="error-msg">Please share your comments.</div>
+    </div>
+
+    <div class="nav-buttons">
+        <button type="button" class="btn-nav btn-back" onclick="navigate(-1)">← Back</button>
+        <button type="button" class="btn-nav btn-next" onclick="navigate(1)">Next →</button>
+    </div>
+    <p class="section-note">All fields marked <span style="color:var(--error)">*</span> are required</p>
+</div>
+
+<!-- ── SECTION 12: Optional Follow-up ── -->
+<div class="section" data-section="11">
+    <div class="section-header"><div class="section-num">12</div><div class="section-title">Optional Follow-up</div></div>
+
+    <div class="q-group" data-required="radio" data-name="future_testing">
+        <label class="q-label"><span class="q-num">Q36.</span> Would you like to participate in future testing or feedback sessions? <span class="req-star">*</span></label>
+        <div class="radio-grid">
+            <label><input type="radio" name="future_testing" value="Yes"><span>Yes</span></label>
+            <label><input type="radio" name="future_testing" value="No"><span>No</span></label>
+        </div>
+        <div class="error-msg">Please select an option.</div>
+    </div>
+
+    <div class="q-group">
+        <label class="q-label"><span class="q-num">Q37.</span> Email address <span style="color:rgba(168,240,244,0.4); font-size:0.82rem;">(optional)</span></label>
+        <input type="email" name="email" placeholder="your@email.com">
+    </div>
+
+    <div class="info-box" style="margin-top:20px;">
+        🎉 <strong>You're almost done!</strong> By clicking Submit, your responses will be securely saved. Thank you for helping shape the future of marine research.
+    </div>
+
+    <div class="nav-buttons">
+        <button type="button" class="btn-nav btn-back" onclick="navigate(-1)">← Back</button>
+        <button type="submit" class="btn-nav btn-submit-final">Submit Survey 🌊</button>
+    </div>
+    <p class="section-note">Clicking Submit will securely save your response for research purposes only.</p>
+</div>
+
+</form>
+</main>
+
+<footer>
+    AQUANET Survey &copy; 2026 &nbsp;·&nbsp; Marine &amp; Ocean Research Platform
+</footer>
+
+<script>
+    // Particles
+    const container = document.getElementById('particles');
+    for (let i = 0; i < 25; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const sz = Math.random() * 4 + 1;
+        p.style.cssText = `width:${sz}px;height:${sz}px;left:${Math.random()*100}%;animation-duration:${Math.random()*15+10}s;animation-delay:${Math.random()*10}s;`;
+        container.appendChild(p);
+    }
+
+    const sectionNames = [
+        'Section 1 — Respondent Background',
+        'Section 2 — Current Research Problems',
+        'Section 3 — Data & Technology Gaps',
+        'Section 4 — Awareness of Platforms',
+        'Section 5 — Introducing AQUANET',
+        'Section 6 — Perception of AQUANET',
+        'Section 7 — Community & Collaboration',
+        'Section 8 — Data Sharing & Trust',
+        'Section 9 — Citizen Science & Impact',
+        'Section 10 — Overall Evaluation',
+        'Section 11 — Open Feedback',
+        'Section 12 — Optional Follow-up'
+    ];
+    const sections = document.querySelectorAll('.section');
+    const totalSections = sections.length;
+    let currentSection = 0;
+
+    function updateProgress(idx) {
+        const pct = ((idx + 1) / totalSections) * 100;
+        document.getElementById('progressFill').style.width = pct + '%';
+        document.getElementById('progressLabel').textContent = sectionNames[idx];
+        document.getElementById('progressPct').textContent = (idx + 1) + ' / ' + totalSections;
+        document.querySelectorAll('.step-dot').forEach((dot, i) => {
+            dot.classList.remove('active', 'done');
+            if (i === idx) dot.classList.add('active');
+            else if (i < idx) dot.classList.add('done');
+        });
+    }
+
+    function showSection(idx, dir) {
+        sections[currentSection].classList.remove('active');
+        currentSection = idx;
+        const sec = sections[currentSection];
+        sec.classList.remove('slide-back');
+        if (dir === -1) sec.classList.add('slide-back');
+        void sec.offsetWidth;
+        sec.classList.add('active');
+        updateProgress(currentSection);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function validateSection(idx) {
+        const sec = sections[idx];
+        const groups = sec.querySelectorAll('.q-group[data-required]');
+        let valid = true;
+
+        groups.forEach(g => {
+            const type = g.dataset.required;
+            g.classList.remove('has-error');
+
+            if (type === 'text') {
+                const inp = g.querySelector('input[type="text"], textarea');
+                if (!inp || !inp.value.trim()) { g.classList.add('has-error'); valid = false; }
+            } else if (type === 'number') {
+                const inp = g.querySelector('input[type="number"]');
+                if (!inp || !inp.value.trim()) { g.classList.add('has-error'); valid = false; }
+            } else if (type === 'radio') {
+                const checked = g.querySelector('input[type="radio"]:checked');
+                if (!checked) { g.classList.add('has-error'); valid = false; }
+            } else if (type === 'checkbox') {
+                const checked = g.querySelectorAll('input[type="checkbox"]:checked');
+                if (!checked.length) { g.classList.add('has-error'); valid = false; }
+            }
+        });
+
+        if (!valid) {
+            const fe = sec.querySelector('.has-error');
+            if (fe) fe.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        return valid;
+    }
+
+    function navigate(dir) {
+        if (dir === 1 && !validateSection(currentSection)) return;
+        const next = currentSection + dir;
+        if (next < 0 || next >= totalSections) return;
+        showSection(next, dir);
+    }
+
+    document.querySelectorAll('input, textarea').forEach(el => {
+        const evts = el.type === 'radio' || el.type === 'checkbox' ? ['change'] : ['input', 'change'];
+        evts.forEach(evt => el.addEventListener(evt, () => {
+            const g = el.closest('.q-group');
+            if (g) g.classList.remove('has-error');
+        }));
+    });
+
+    document.getElementById('surveyForm').addEventListener('submit', e => {
+        if (!validateSection(currentSection)) e.preventDefault();
+    });
+
+    updateProgress(0);
+</script>
+</body>
+</html>

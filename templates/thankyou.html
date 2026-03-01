@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thank You — AQUANET Survey</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --deep: #030d1a;
+            --aqua: #00c9d4;
+            --foam: #a8f0f4;
+            --light: #e8f7f8;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: var(--deep);
+            color: var(--light);
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px 20px;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(0,201,212,0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .card {
+            position: relative;
+            max-width: 540px;
+            background: rgba(10,61,107,0.25);
+            border: 1px solid rgba(0,201,212,0.2);
+            border-radius: 20px;
+            padding: 60px 48px;
+        }
+        .icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 2px solid var(--aqua);
+            background: rgba(0,201,212,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 28px;
+            animation: pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes pop {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .icon svg { width: 36px; height: 36px; }
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            background: linear-gradient(135deg, #f5fdfe, var(--aqua));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 14px;
+        }
+        p {
+            color: rgba(168,240,244,0.7);
+            font-size: 0.95rem;
+            line-height: 1.7;
+            margin-bottom: 10px;
+        }
+        .divider {
+            border: none;
+            border-top: 1px solid rgba(0,201,212,0.12);
+            margin: 24px 0;
+        }
+        .team {
+            font-size: 0.82rem;
+            color: rgba(168,240,244,0.45);
+            line-height: 1.8;
+        }
+        a.btn {
+            display: inline-block;
+            margin-top: 28px;
+            padding: 12px 36px;
+            background: linear-gradient(135deg, #0e7c8a, #00c9d4);
+            color: var(--deep);
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        a.btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,201,212,0.3); }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="icon">
+            <svg viewBox="0 0 36 36" fill="none">
+                <circle cx="18" cy="18" r="16" stroke="#00c9d4" stroke-width="1.5"/>
+                <path d="M10 18 L15 23 L26 12" stroke="#00c9d4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        <h1>Thank You!</h1>
+        <p>Your response has been successfully recorded. Your insights will help shape the future of AQUANET and contribute to sustainable marine ecosystem management.</p>
+        <hr class="divider">
+        <div class="team">
+            <strong style="color: rgba(168,240,244,0.7);">AQUANET Research Team</strong><br>
+            Santhiya R &nbsp;·&nbsp; Saraswathi M &nbsp;·&nbsp; Priyanka Mary J<br>
+            B.Tech AI &amp; Data Science · Care College of Engineering · 2026<br>
+            Guide: Mr. R. Selvamanikandan
+        </div>
+        <a href="/" class="btn">Take Survey Again</a>
+    </div>
+</body>
+</html>
